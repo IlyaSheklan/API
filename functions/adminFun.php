@@ -187,4 +187,34 @@ function addUserInShift($connect, $data, $idShift){
     }
 }
 
+function getOrders($connect, $id){
+    $allShift = mysqli_query($connect, "SELECT * FROM `work_shift` WHERE `id`='$id'");
+    $allOrders = mysqli_query($connect, "SELECT * FROM `orders` WHERE `id_shift`='$id'");
+
+    $amount_for_all = 0;
+
+    $shifts = mysqli_fetch_assoc($allShift);
+    
+    $orderList = [];
+
+    while($order = $allOrders -> fetch_assoc()){
+        $orderList[] = $order;
+        $amount_for_all += $order["price"];
+    } 
+
+    $response = [
+        "data" => [
+            "id" => $id,
+            "start" => $shifts["start"],
+            "end" => $shifts["end"],
+            "active" => $shifts["active"],
+            "orders" => $orderList,
+
+            "amount_for_all" => $amount_for_all,
+        ]
+    ];
+
+    echo json_encode($response);
+}
+
 ?>

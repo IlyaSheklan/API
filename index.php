@@ -36,6 +36,13 @@ switch($method){
             logoutUser($connect);
         }
 
+        if($type === "work-shift"){
+
+            if($active === 'order'){
+                getOrders($connect, $id);
+            }
+        }
+
     break;
 
     case "POST":

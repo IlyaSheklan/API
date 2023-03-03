@@ -10,11 +10,11 @@ function get_token() {
 function loginUser($connect, $data){
     $login = $data['name'];
     $password = $data['password'];
+    $token = get_token();
 
     $loginDB = mysqli_query($connect, "SELECT * FROM `users` WHERE `name` = '$login' AND `password` = '$password'");
    
     if(mysqli_num_rows($loginDB) !== 0){
-        $token = get_token();
         $response = [
             "data" => [
                 "user_token" => $token,
@@ -26,6 +26,8 @@ function loginUser($connect, $data){
 
         mysqli_query($connect, "UPDATE `users` SET `token`='$token' WHERE `id` = '$idUser' ");
 
+        header("Authorization: Bearer ".$token);
+        
         http_response_code(200);
         echo json_encode($response);
     }
