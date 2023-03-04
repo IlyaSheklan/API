@@ -22,9 +22,11 @@ $type = $parms[0];
 $id = $parms[1];
 $active = $parms[2];
 
+$data = json_decode(file_get_contents("php://input"), true);
+
 switch($method){
     case "GET":
-        if($type === "users"){
+        if($type === "user"){
             if($id){
                 getOneRecord($connect, $id);
             } else{
@@ -38,6 +40,14 @@ switch($method){
 
         if($type === "work-shift"){
 
+            if($active === 'open'){
+                openWorkShift($connect, $id);
+            } 
+            
+            if($active === 'close'){
+                closeWorkShift($connect, $id);
+            } 
+
             if($active === 'order'){
                 getOrders($connect, $id);
             }
@@ -46,30 +56,27 @@ switch($method){
     break;
 
     case "POST":
-        if($type === "users"){
+        if($type === "user"){
             addRecord($connect, $_POST);
         }
 
         if($type === "login"){
-            loginUser($connect, $_POST);
+            loginUser($connect, $data);
         }
 
         if($type === "work-shift"){
-            if($active === 'open'){
-                openWorkShift($connect, $id);
-            } 
-            
-            elseif($active === 'close'){
-                closeWorkShift($connect, $id);
-            } 
-
-            elseif($active === 'user'){
-                addUserInShift($connect, $_POST, $id);
+           
+            if($active === 'user'){
+                addUserInShift($connect, $data, $id);
             }
             
             else{
-                addWorkShift($connect, $_POST);
+                addWorkShift($connect, $data);
             }
+        }
+
+        if($type === "order"){
+            createOrder($connect, $data);
         }
 
     break;
