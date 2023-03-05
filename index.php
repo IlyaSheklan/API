@@ -1,20 +1,22 @@
 <?php
 
+// Подключение всех функций
 require 'connect.php';
 require 'functions/generalFun.php';
 require 'functions/adminFun.php';
 require 'functions/waiterFun.php';
 require 'functions/cookerFun.php';
 
+// Настройки доступности
 header("Content-Type: application/json; charset=UTF-8");
 header("Access-Control-Allow-Origin: *");
 header("Access-Control-Allow-Methods: POST");
 header("Access-Control-Max-Age: 3600");
 header("Access-Control-Allow-Headers: Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With");
 
+// Настройки ресурсов и данных
 $method = $_SERVER['REQUEST_METHOD'];
 
-// Роутинг
 $q = $_GET['q'];
 $parms = explode('/', $q);
 
@@ -24,59 +26,82 @@ $active = $parms[2];
 
 $data = json_decode(file_get_contents("php://input"), true);
 
+// Страница не найдена
+function not_found(){
+    $resNotFound = [
+        "message" => [
+            "code" => 404,
+            "message" => "Page not found"
+        ]
+    ];
+
+    http_response_code(404);
+    return json_encode($resNotFound);
+}
+
+// Роутинг
 switch($method){
     case "GET":
-        if($type === "user"){
-            if($id){
-                getOneRecord($connect, $id);
-            } else{
-                getRecords($connect);
-            }
-        }
 
-        if($type === "logout"){
-            logoutUser($connect);
-        }
+        switch($type){
+            case "user":
+                if($id){
+                    getOneRecord($connect, $id);
+                } else{
+                    getRecords($connect);
+                }
+                break;
+                
+            case "test":
+                getTest($connect);
+                break;
 
-        if($type === "work-shift"){
-
-            if($active === 'open'){
-                openWorkShift($connect, $id);
-            } 
+            case "logout":    
+                logoutUser($connect);
+                break;     
             
-            if($active === 'close'){
-                closeWorkShift($connect, $id);
-            } 
+            default:
+                echo not_found();
+                break;
 
-            if($active === 'order'){
-                getOrders($connect, $id);
-            }
         }
 
     break;
 
     case "POST":
-        if($type === "user"){
-            addRecord($connect, $_POST);
-        }
 
-        if($type === "login"){
-            loginUser($connect, $data);
-        }
+        switch($type){
+            case "user":
+                addRecord($connect, $_POST);
+                break;
 
-        if($type === "work-shift"){
-           
-            if($active === 'user'){
-                addUserInShift($connect, $data, $id);
-            }
+            case "login":
+                loginUser($connect, $data);
+                break;
+
+            case "work-shift":
+                if($active === 'open'){
+                    openWorkShift($connect, $id);
+                } 
+                
+                elseif($active === 'close'){
+                    closeWorkShift($connect, $id);
+                } 
+    
+                elseif($active === 'user'){
+                    addUserInShift($connect, $data, $id);
+                }
+                
+                elseif(empty($active) && empty($id)){
+                    addWorkShift($connect, $data);
+                }
+                else{
+                    echo not_found();
+                }
+                break;
             
-            else{
-                addWorkShift($connect, $data);
-            }
-        }
-
-        if($type === "order"){
-            createOrder($connect, $data);
+            default:
+                echo not_found();
         }
 
     break;
